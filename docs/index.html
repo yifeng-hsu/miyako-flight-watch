@@ -206,6 +206,13 @@
       return value.replace(/^2027-/, '').replace(' ', ' ');
     }
 
+    function statusText(status) {
+      if (status === 'ok') return '已取得報價';
+      if (status === 'no_result') return '尚無可售直飛票價';
+      if (status === 'error') return '查詢失敗';
+      return status || '尚未執行';
+    }
+
     function latestValid(records, label) {
       return [...records].reverse().find(row => row.label === label && Number.isFinite(row.total_price_twd));
     }
@@ -238,7 +245,7 @@
           <div class="detail"><div class="detail-label">去程</div><div class="detail-value">${latest?.outbound_flight || '—'}<br>${flightTime(latest?.outbound_departure)}</div></div>
           <div class="detail"><div class="detail-label">回程</div><div class="detail-value">${latest?.return_flight || '—'}<br>${flightTime(latest?.return_departure)}</div></div>
           <div class="detail"><div class="detail-label">最後更新</div><div class="detail-value">${localTime(lastAttempt?.checked_at)}</div></div>
-          <div class="detail"><div class="detail-label">資料狀態</div><div class="detail-value">${lastAttempt?.status === 'ok' ? '已取得報價' : (lastAttempt?.status || '尚未執行')}</div></div>
+          <div class="detail"><div class="detail-label">資料狀態</div><div class="detail-value">${statusText(lastAttempt?.status)}</div></div>
         </div>
         ${latest ? `<div class="target-note ${below ? '' : 'above'}">${below ? '已低於' : '仍高於'}目前設定的 4 人目標總價 ${money(TARGET_TOTAL)}</div>` : ''}
       `;
