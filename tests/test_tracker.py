@@ -27,6 +27,22 @@ def test_helpers_parse_flight():
     assert summary["flight"] == "JX 860"
 
 
+def test_serpapi_no_results_is_not_a_system_error(monkeypatch):
+    class FakeResponse:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"error": "Google Flights hasn't returned any results for this query."}
+
+    monkeypatch.setattr(tracker.requests, "get", lambda *args, **kwargs: FakeResponse())
+
+    assert tracker._request({}, "test-key") == {
+        "best_flights": [],
+        "other_flights": [],
+    }
+
+
 def test_search_ignores_connecting_return(monkeypatch):
     outbound = {
         "price": 42000,
