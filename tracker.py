@@ -16,6 +16,7 @@ DATA_DIR = ROOT / "docs" / "data"
 DATA_FILE = DATA_DIR / "prices.json"
 TPE_TZ = ZoneInfo("Asia/Taipei")
 SERPAPI_ENDPOINT = "https://serpapi.com/search.json"
+NO_RESULTS_TEXT = "目前沒有查到可售的直飛來回組合，可能尚未開賣。"
 
 ORIGIN = "TPE"
 DESTINATION = "SHI"
@@ -61,7 +62,14 @@ def load_records() -> list[dict[str, Any]]:
         return []
     try:
         payload = json.loads(DATA_FILE.read_text(encoding="utf-8"))
-        return payload if isinstance(payload, list) else []
+        records = payload if isinstance(payload, list) else []
+        for record in records:
+            if not isinstance(record, dict):
+                continue
+            if _is_no_results_error(record.get("error")):
+                record["status"] = "no_result"
+                record["error"] = NO_RESULTS_TEXT
+        return records
     except (OSError, json.JSONDecodeError):
         return []
 
@@ -80,8 +88,21 @@ def _request(params: dict[str, Any], api_key: str) -> dict[str, Any]:
     response.raise_for_status()
     payload = response.json()
     if payload.get("error"):
-        raise RuntimeError(str(payload["error"]))
+        error = str(payload["error"])
+        if _is_no_results_error(error):
+            return {"best_flights": [], "other_flights": []}
+        raise RuntimeError(error)
     return payload
+
+
+def _is_no_results_error(value: Any) -> bool:
+    if not isinstance(value, str):
+        return False
+    normalized = value.lower()
+    return (
+        "hasn't returned any results" in normalized
+        or "has not returned any results" in normalized
+    )
 
 
 def _all_flights(payload: dict[str, Any]) -> list[dict[str, Any]]:
@@ -250,7 +271,7 @@ def search_itinerary(itinerary: dict[str, str], api_key: str) -> PriceRecord:
                 typical_high_twd=None,
                 google_flights_url=_google_flights_url(payload),
                 status="no_result",
-                error="目前沒有查到可售的直飛來回組合。",
+                error=NO_RESULTS_TEXT,
             )
 
         combinations = _return_options(base_params, candidates, api_key)
