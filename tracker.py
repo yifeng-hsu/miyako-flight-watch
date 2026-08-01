@@ -183,7 +183,11 @@ def _return_options(
             continue
         payload = _request({**base_params, "departure_token": token}, api_key)
         return_candidates = sorted(
-            (item for item in _all_flights(payload) if _price(item) is not None),
+            (
+                item
+                for item in _all_flights(payload)
+                if _price(item) is not None and _is_nonstop(item)
+            ),
             key=lambda item: _price(item) or 10**12,
         )
         if return_candidates:
@@ -250,26 +254,48 @@ def search_itinerary(itinerary: dict[str, str], api_key: str) -> PriceRecord:
             )
 
         combinations = _return_options(base_params, candidates, api_key)
-        if combinations:
-            outbound, return_option = min(
-                combinations,
-                key=lambda pair: _price(pair[1]) or 10**12,
+        if not combinations:
+            return PriceRecord(
+                checked_at=checked_at,
+                label=itinerary["label"],
+                origin=ORIGIN,
+                destination=DESTINATION,
+                departure_date=itinerary["departure_date"],
+                return_date=itinerary["return_date"],
+                adults=ADULTS,
+                total_price_twd=None,
+                per_person_twd=None,
+                airline=None,
+                outbound_flight=None,
+                outbound_departure=None,
+                outbound_arrival=None,
+                return_flight=None,
+                return_departure=None,
+                return_arrival=None,
+                nonstop=True,
+                price_level=None,
+                typical_low_twd=None,
+                typical_high_twd=None,
+                google_flights_url=_google_flights_url(payload),
+                status="no_result",
+                error="查到直飛去程，但目前沒有可售的直飛回程組合。",
             )
-            total_price = _price(return_option)
-            return_summary = _segment_summary(return_option)
-        else:
-            outbound = candidates[0]
-            total_price = _price(outbound)
-            return_summary = {
-                "airline": None,
-                "flight": None,
-                "departure": None,
-                "arrival": None,
-            }
+
+        outbound, return_option = min(
+            combinations,
+            key=lambda pair: _price(pair[1]) or 10**12,
+        )
+        total_price = _price(return_option)
+        return_summary = _segment_summary(return_option)
 
         outbound_summary = _segment_summary(outbound)
         price_level, typical_low, typical_high = _price_insights(payload)
-        airline = outbound_summary["airline"] or return_summary["airline"]
+        airlines = [
+            value
+            for value in (outbound_summary["airline"], return_summary["airline"])
+            if value
+        ]
+        airline = " / ".join(dict.fromkeys(airlines)) or None
         per_person = round(total_price / ADULTS) if total_price is not None else None
 
         return PriceRecord(
@@ -369,7 +395,7 @@ def _notification_lines(
 
         if reasons:
             lines.append(
-                f"{record.label}｜4 人總價 NT${record.total_price_twd:,}｜"
+                f"{record.label}｜{record.adults} 人總價 NT${record.total_price_twd:,}｜"
                 f"每人約 NT${record.per_person_twd:,}｜{'、'.join(reasons)}"
             )
     return lines

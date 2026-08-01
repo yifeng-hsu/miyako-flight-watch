@@ -10,10 +10,10 @@
 
 ## 網址形式
 
-部署後網址會是：
+正式網址：
 
 ```text
-https://你的GitHub帳號.github.io/miyako-flight-watch/
+https://yifeng-hsu.github.io/miyako-flight-watch/
 ```
 
 ## 部署步驟
