@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="桃園至宮古島下地島，2027 年 5 月四天行程直飛機票價格追蹤。">
   <title>宮古島機票追蹤</title>
+  <link rel="preload" as="image" href="miyako-coast.webp" type="image/webp">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js"></script>
   <style>
     :root {
       color-scheme: light dark;
       --bg: #f4f7fb;
-      --card: rgba(255,255,255,.88);
+      --card: rgba(255,255,255,.86);
       --text: #172033;
       --muted: #687386;
       --line: #dce3ec;
@@ -24,7 +25,7 @@
     @media (prefers-color-scheme: dark) {
       :root {
         --bg: #0d1420;
-        --card: rgba(20,29,43,.92);
+        --card: rgba(14,25,38,.88);
         --text: #edf3fb;
         --muted: #a5b0c1;
         --line: #2d3a4c;
@@ -40,12 +41,26 @@
     body {
       margin: 0;
       min-height: 100vh;
-      background:
-        radial-gradient(circle at 10% 10%, rgba(0,109,119,.12), transparent 34rem),
-        radial-gradient(circle at 90% 0%, rgba(58,134,255,.10), transparent 30rem),
-        var(--bg);
+      background: var(--bg);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      z-index: -2;
+      inset: -2px;
+      background: url("miyako-coast.webp") center center / cover no-repeat;
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      z-index: -1;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(237,248,252,.40), rgba(230,245,247,.68) 48%, rgba(237,247,249,.82));
+    }
+    @media (prefers-color-scheme: dark) {
+      body::after { background: linear-gradient(180deg, rgba(5,19,31,.46), rgba(7,18,29,.74) 48%, rgba(7,16,27,.90)); }
     }
     main { width: min(1120px, calc(100% - 32px)); margin: 0 auto; padding: 32px 0 56px; }
     header { display: flex; gap: 20px; align-items: end; justify-content: space-between; margin-bottom: 24px; }
@@ -65,6 +80,10 @@
       text-decoration: none;
     }
     button:hover, .link-button:hover { border-color: var(--primary); }
+    button:focus-visible, .link-button:focus-visible, summary:focus-visible { outline: 3px solid rgba(58,134,255,.42); outline-offset: 2px; }
+    .primary-button { background: var(--primary); border-color: transparent; color: white; font-weight: 700; }
+    .primary-button:hover { border-color: transparent; filter: brightness(1.08); }
+    .primary-button.active { background: var(--good); }
     .route-strip {
       display: grid;
       grid-template-columns: 1fr auto 1fr;
@@ -76,6 +95,8 @@
       border-radius: 18px;
       background: var(--card);
       box-shadow: var(--shadow);
+      -webkit-backdrop-filter: blur(16px) saturate(1.12);
+      backdrop-filter: blur(16px) saturate(1.12);
     }
     .airport-code { font-size: 1.6rem; font-weight: 750; letter-spacing: .04em; }
     .airport-name { color: var(--muted); font-size: .9rem; margin-top: 4px; }
@@ -88,6 +109,8 @@
       background: var(--card);
       box-shadow: var(--shadow);
       padding: 20px;
+      -webkit-backdrop-filter: blur(16px) saturate(1.12);
+      backdrop-filter: blur(16px) saturate(1.12);
     }
     .itinerary-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
     .date { font-size: 1.25rem; font-weight: 700; }
@@ -110,6 +133,21 @@
     .price-cell { font-variant-numeric: tabular-nums; font-weight: 650; }
     footer { margin-top: 20px; color: var(--muted); font-size: .85rem; line-height: 1.6; }
     .error { color: var(--danger); }
+    .voice-card { margin-bottom: 20px; }
+    .voice-head { display: flex; gap: 18px; align-items: center; justify-content: space-between; }
+    .voice-copy h2 { margin-bottom: 5px; }
+    .voice-copy p { margin: 0; color: var(--muted); }
+    .voice-state { display: inline-flex; align-items: center; gap: 7px; margin-top: 12px; font-size: .9rem; font-weight: 650; }
+    .voice-state::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); }
+    .voice-state.on::before { background: var(--good); box-shadow: 0 0 0 4px rgba(23,130,75,.13); }
+    .voice-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .voice-meta span { border: 1px solid var(--line); border-radius: 999px; padding: 5px 9px; color: var(--muted); font-size: .8rem; }
+    details { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 14px; }
+    summary { cursor: pointer; color: var(--primary); font-weight: 700; }
+    .setup-steps { margin: 12px 0 8px; padding-left: 1.4rem; color: var(--muted); line-height: 1.7; }
+    .setup-steps strong { color: var(--text); }
+    .setup-note { margin: 10px 0 0; padding: 10px 12px; border-radius: 12px; background: rgba(58,134,255,.09); color: var(--muted); font-size: .88rem; }
+    .setup-note a { color: var(--secondary); }
     @media (max-width: 760px) {
       main { width: min(100% - 20px, 1120px); padding-top: 20px; }
       header { align-items: flex-start; flex-direction: column; }
@@ -117,6 +155,8 @@
       .wide { grid-column: auto; }
       .chart-wrap { height: 300px; }
       .details { grid-template-columns: 1fr; }
+      .voice-head { align-items: stretch; flex-direction: column; }
+      .voice-head button { width: 100%; }
     }
   </style>
 </head>
@@ -143,6 +183,32 @@
         <div class="airport-code">SHI</div>
         <div class="airport-name">宮古島・下地島機場</div>
       </div>
+    </section>
+
+    <section class="card voice-card" aria-labelledby="voiceTitle">
+      <div class="voice-head">
+        <div class="voice-copy">
+          <h2 id="voiceTitle">手機語音提醒</h2>
+          <p>按一次即可試聽；頁面開啟或重新回到前景時，會播報新一筆查價結果。</p>
+          <div id="voiceStatus" class="voice-state" role="status" aria-live="polite">網頁語音播報尚未開啟</div>
+        </div>
+        <button id="voiceToggle" class="primary-button" type="button" aria-pressed="false">開啟並試聽</button>
+      </div>
+      <div class="voice-meta" aria-label="播報說明">
+        <span>每日約 09:05 查價</span>
+        <span>網頁檢查不消耗 API</span>
+        <span>支援繁體中文語音</span>
+      </div>
+      <details>
+        <summary>iPhone 關閉網頁後也要自動播報：設定方式</summary>
+        <ol class="setup-steps">
+          <li>在 Telegram 建立機器人並傳送 <strong>/start</strong>，取得 Bot Token 與 Chat ID。</li>
+          <li>到本專案 GitHub 的 <strong>Settings → Secrets and variables → Actions</strong>，新增 <strong>TELEGRAM_BOT_TOKEN</strong> 和 <strong>TELEGRAM_CHAT_ID</strong>。</li>
+          <li>iPhone 到 <strong>設定 → 輔助使用 → Siri → 透過揚聲器播報通知</strong>，將它開啟。</li>
+          <li>再到 <strong>設定 → 通知 → 播報通知</strong>，若清單中有 Telegram，開啟 Telegram 並選擇所有通知。</li>
+        </ol>
+        <p class="setup-note">iOS 不允許一般網頁在完全關閉後持續執行語音。真正的背景提醒由既有 Telegram 推播負責，再交給 Siri 從 iPhone 揚聲器、AirPods 或 CarPlay 播報。可參考 <a href="https://support.apple.com/zh-tw/guide/iphone/iphaff1d606/ios" target="_blank" rel="noreferrer">Apple 的 Siri 輔助使用說明</a>。</p>
+      </details>
     </section>
 
     <div id="status" class="status">正在讀取價格資料…</div>
@@ -185,8 +251,12 @@
 
   <script>
     const TARGET_TOTAL = 48000;
+    const TRIP_LABELS = ['5/24－5/27', '5/25－5/28'];
+    const VOICE_ENABLED_KEY = 'miyakoVoiceEnabledV1';
+    const VOICE_MARKER_KEY = 'miyakoVoiceLastMarkerV1';
     const formatter = new Intl.NumberFormat('zh-TW');
     let chart;
+    let currentRecords = [];
 
     function money(value) {
       return Number.isFinite(value) ? `NT$ ${formatter.format(value)}` : '尚無票價';
@@ -221,6 +291,91 @@
       return records.filter(row => row.label === label && Number.isFinite(row.total_price_twd));
     }
 
+    function latestAttempt(records, label) {
+      return [...records].reverse().find(row => row.label === label);
+    }
+
+    function storageGet(key) {
+      try { return localStorage.getItem(key); } catch (_error) { return null; }
+    }
+
+    function storageSet(key, value) {
+      try { localStorage.setItem(key, value); } catch (_error) { /* Storage may be unavailable in private mode. */ }
+    }
+
+    function voiceSupported() {
+      return 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+    }
+
+    function voiceEnabled() {
+      return storageGet(VOICE_ENABLED_KEY) === 'true';
+    }
+
+    function dataMarker(records) {
+      return TRIP_LABELS.map(label => {
+        const row = latestAttempt(records, label);
+        return row ? `${row.checked_at}|${row.status}|${row.total_price_twd ?? ''}` : `${label}|none`;
+      }).join('::');
+    }
+
+    function spokenSummary(records) {
+      const parts = TRIP_LABELS.map(label => {
+        const row = latestAttempt(records, label);
+        const spokenLabel = label.replace('－', ' 到 ');
+        if (!row) return `${spokenLabel}，尚無查價資料`;
+        if (Number.isFinite(row.total_price_twd)) {
+          const target = row.total_price_twd <= TARGET_TOTAL ? '，已低於目標價' : '';
+          return `${spokenLabel}，四人總價新台幣 ${formatter.format(row.total_price_twd)} 元，每人約 ${formatter.format(row.per_person_twd)} 元${target}`;
+        }
+        if (row.status === 'error') return `${spokenLabel}，本次查價暫時失敗`;
+        return `${spokenLabel}，目前還沒有可售的直飛來回票價`;
+      });
+      return `宮古島機票更新。${parts.join('。')}。`;
+    }
+
+    function setVoiceStatus(message) {
+      const status = document.getElementById('voiceStatus');
+      const button = document.getElementById('voiceToggle');
+      const enabled = voiceEnabled() && voiceSupported();
+      status.textContent = message || (enabled ? '網頁語音播報已開啟' : '網頁語音播報尚未開啟');
+      status.classList.toggle('on', enabled);
+      button.classList.toggle('active', enabled);
+      button.setAttribute('aria-pressed', String(enabled));
+      button.textContent = enabled ? '關閉網頁播報' : '開啟並試聽';
+      button.disabled = !voiceSupported();
+      if (!voiceSupported()) status.textContent = '這個瀏覽器不支援網頁語音，仍可使用 Telegram＋Siri';
+    }
+
+    function speak(message, successMessage = '播報完成；有新資料時會再提醒') {
+      if (!voiceSupported()) return;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(message);
+      utterance.lang = 'zh-TW';
+      utterance.rate = .95;
+      const preferredVoice = window.speechSynthesis.getVoices().find(voice => voice.lang.toLowerCase().startsWith('zh-tw'));
+      if (preferredVoice) utterance.voice = preferredVoice;
+      utterance.onstart = () => setVoiceStatus('正在播報…');
+      utterance.onend = () => setVoiceStatus(successMessage);
+      utterance.onerror = event => {
+        if (!['canceled', 'interrupted'].includes(event.error)) setVoiceStatus('播報未成功，請確認手機未設為靜音後再試一次');
+      };
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function announceIfNew(records) {
+      if (!voiceEnabled() || !voiceSupported() || document.visibilityState !== 'visible') return;
+      const marker = dataMarker(records);
+      const previousMarker = storageGet(VOICE_MARKER_KEY);
+      if (!previousMarker) {
+        storageSet(VOICE_MARKER_KEY, marker);
+        return;
+      }
+      if (marker !== previousMarker) {
+        storageSet(VOICE_MARKER_KEY, marker);
+        speak(spokenSummary(records));
+      }
+    }
+
     function renderTrip(elementId, label, records) {
       const element = document.getElementById(elementId);
       const latest = latestValid(records, label);
@@ -252,8 +407,7 @@
     }
 
     function renderChart(records) {
-      const labels = ['5/24－5/27', '5/25－5/28'];
-      const datasets = labels.map((label, index) => {
+      const datasets = TRIP_LABELS.map((label, index) => {
         const rows = validPrices(records, label);
         return {
           label,
@@ -333,18 +487,40 @@
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const records = await response.json();
         if (!Array.isArray(records)) throw new Error('資料格式錯誤');
+        currentRecords = records;
         renderTrip('trip-0524', '5/24－5/27', records);
         renderTrip('trip-0525', '5/25－5/28', records);
         renderChart(records);
         renderTable(records);
         status.hidden = true;
         content.hidden = false;
+        announceIfNew(records);
       } catch (error) {
         status.innerHTML = `<span class="error">讀取失敗：${error.message}</span>`;
       }
     }
 
     document.getElementById('refreshButton').addEventListener('click', loadData);
+    document.getElementById('voiceToggle').addEventListener('click', () => {
+      if (!voiceSupported()) return;
+      if (voiceEnabled()) {
+        window.speechSynthesis.cancel();
+        storageSet(VOICE_ENABLED_KEY, 'false');
+        setVoiceStatus('網頁語音播報已關閉');
+        return;
+      }
+      storageSet(VOICE_ENABLED_KEY, 'true');
+      storageSet(VOICE_MARKER_KEY, dataMarker(currentRecords));
+      setVoiceStatus('正在準備試聽…');
+      speak(`手機語音提醒已開啟。${spokenSummary(currentRecords)}`);
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') loadData();
+    });
+    window.setInterval(() => {
+      if (document.visibilityState === 'visible') loadData();
+    }, 15 * 60 * 1000);
+    setVoiceStatus();
     loadData();
   </script>
 </body>
