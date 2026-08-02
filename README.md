@@ -6,7 +6,7 @@
 - 2027-05-25 → 2027-05-28
 - 4 位成人
 
-網站顯示 4 人總價、每人估價、航空公司、航班、歷史最低價與價格折線圖。GitHub Actions 每天台灣時間約 09:05 自動查價並更新網站。
+網站顯示 4 人總價、每人估價、航空公司、航班、歷史最低價與價格折線圖。GitHub Actions 每天台灣時間約 09:05 自動查價並更新網站。頁面也提供繁體中文試聽與新資料播報；真正的手機背景提醒使用 Telegram 推播搭配 iPhone Siri 播報。
 
 ## 網址形式
 
@@ -20,7 +20,7 @@ https://yifeng-hsu.github.io/miyako-flight-watch/
 
 ### 1. 建立 SerpApi 金鑰
 
-註冊 SerpApi 免費帳號並複製 API key。兩組日期每日查詢約使用 4–6 次額度，免費方案一般足夠。
+註冊 SerpApi 免費帳號並複製 API key。兩組日期每日查詢約使用 2–6 次額度，每月約 60–180 次，維持在每月 250 次的方案額度內。網站每 15 分鐘讀取一次已產生的 JSON 不會呼叫 SerpApi，也不會增加 API 用量。
 
 ### 2. 上傳專案到 GitHub
 
@@ -45,7 +45,30 @@ Secret: 你的 SerpApi API key
 - Repository variable `DROP_ALERT_PERCENT`：降價提醒百分比，預設 `5`
 - Secret `TELEGRAM_BOT_TOKEN` 與 `TELEGRAM_CHAT_ID`：啟用 Telegram 推播
 
-### 4. 開啟 GitHub Pages
+### 4. 設定 iPhone 自動播報
+
+網頁上的「開啟並試聽」適合頁面開啟中或重新回到前景時使用。iOS 會暫停已關閉或長時間在背景的普通網頁，因此要在鎖定畫面、其他 App 或螢幕關閉時自動播報，請使用 Telegram＋Siri：
+
+1. 在 Telegram 搜尋 `@BotFather`，輸入 `/newbot` 建立機器人並保存 Bot Token。
+2. 開啟剛建立的機器人，傳送 `/start`。
+3. 取得 Chat ID，然後到 repository 的 `Settings` → `Secrets and variables` → `Actions` 新增：
+
+   ```text
+   TELEGRAM_BOT_TOKEN = BotFather 提供的 Token
+   TELEGRAM_CHAT_ID = 你的 Chat ID
+   ```
+
+4. iPhone 到「設定」→「輔助使用」→「Siri」→開啟「透過揚聲器播報通知」。
+5. 再到「設定」→「通知」→「播報通知」。如果 App 清單中有 Telegram，開啟 Telegram 並選擇所有通知。
+6. 使用 AirPods 或 CarPlay 時，也可在同一個「播報通知」頁面開啟耳機或 CarPlay 播報。
+
+Apple 官方說明：
+
+- [讓 Siri 透過 iPhone 揚聲器播報通知](https://support.apple.com/zh-tw/guide/iphone/iphaff1d606/ios)
+- [使用 Siri 播報通知](https://support.apple.com/zh-tw/guide/iphone/iph838fd6fd4/ios)
+- [AirPods 或 Beats 播報通知](https://support.apple.com/zh-tw/102536)
+
+### 5. 開啟 GitHub Pages
 
 進入：
 
@@ -74,6 +97,8 @@ python -m http.server 8000 --directory docs
 - 刷新歷史最低價
 - 比前一次下降至少 5%
 - 低於設定的 4 人目標總價
+
+Telegram 只有符合以上條件時才通知，不會因網頁重新整理而重複推播。網頁語音偏好只保存在該支手機的瀏覽器中，不會上傳任何個人資料。
 
 ## 注意事項
 
